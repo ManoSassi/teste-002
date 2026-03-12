@@ -1,0 +1,1050 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dungeons & Dragons — Taverna do Aventureiro</title>
+<link href="https://fonts.googleapis.com/css2?family=MedievalSharp&family=Cinzel:wght@400;700;900&family=Cinzel+Decorative:wght@400;700&family=IM+Fell+English:ital@0;1&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --parchment: #f4e4c1;
+    --parchment-dark: #e8d5a3;
+    --ink: #2c1810;
+    --blood: #8b0000;
+    --gold: #c9a227;
+    --gold-light: #f0c040;
+    --ember: #ff6b1a;
+    --shadow: #1a0d05;
+    --stone: #3d3028;
+    --magic: #7b2fff;
+    --fog: rgba(244, 228, 193, 0.08);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background-color: #0d0805;
+    font-family: 'IM Fell English', Georgia, serif;
+    color: var(--parchment);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* ── BACKGROUND ── */
+  .bg-layer {
+    position: fixed; inset: 0; z-index: 0;
+    background:
+      radial-gradient(ellipse 60% 40% at 50% 0%, rgba(201,162,39,.12) 0%, transparent 70%),
+      radial-gradient(ellipse 80% 60% at 20% 100%, rgba(139,0,0,.15) 0%, transparent 60%),
+      radial-gradient(ellipse 60% 80% at 80% 50%, rgba(123,47,255,.07) 0%, transparent 60%),
+      #0d0805;
+  }
+
+  .particles {
+    position: fixed; inset: 0; z-index: 1; pointer-events: none;
+    overflow: hidden;
+  }
+
+  .spark {
+    position: absolute;
+    width: 2px; height: 2px;
+    background: var(--gold-light);
+    border-radius: 50%;
+    animation: float-spark linear infinite;
+    opacity: 0;
+  }
+
+  @keyframes float-spark {
+    0%   { transform: translateY(100vh) translateX(0); opacity: 0; }
+    10%  { opacity: 1; }
+    90%  { opacity: .6; }
+    100% { transform: translateY(-20px) translateX(calc(var(--dx,0) * 1px)); opacity: 0; }
+  }
+
+  /* ── LAYOUT ── */
+  .container {
+    position: relative; z-index: 10;
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 0 1.5rem 4rem;
+  }
+
+  /* ── HEADER ── */
+  header {
+    text-align: center;
+    padding: 3rem 1rem 2rem;
+    position: relative;
+  }
+
+  .title-eyebrow {
+    font-family: 'Cinzel', serif;
+    font-size: .75rem;
+    letter-spacing: .35em;
+    color: var(--gold);
+    text-transform: uppercase;
+    margin-bottom: .8rem;
+    opacity: .85;
+  }
+
+  h1 {
+    font-family: 'Cinzel Decorative', serif;
+    font-size: clamp(2rem, 6vw, 4.5rem);
+    font-weight: 900;
+    line-height: 1;
+    background: linear-gradient(160deg, var(--gold-light) 0%, var(--gold) 40%, var(--ember) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    text-shadow: none;
+    filter: drop-shadow(0 0 30px rgba(201,162,39,.4));
+    margin-bottom: .5rem;
+    animation: title-glow 3s ease-in-out infinite alternate;
+  }
+
+  @keyframes title-glow {
+    from { filter: drop-shadow(0 0 20px rgba(201,162,39,.3)); }
+    to   { filter: drop-shadow(0 0 50px rgba(201,162,39,.7)); }
+  }
+
+  .subtitle {
+    font-family: 'Cinzel', serif;
+    font-size: clamp(.8rem, 2vw, 1.1rem);
+    color: var(--parchment-dark);
+    letter-spacing: .15em;
+    opacity: .7;
+  }
+
+  .divider {
+    display: flex; align-items: center; gap: 1rem;
+    margin: 1.5rem auto;
+    max-width: 500px;
+  }
+
+  .divider-line {
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--gold), transparent);
+  }
+
+  .divider-gem {
+    width: 10px; height: 10px;
+    background: var(--gold);
+    transform: rotate(45deg);
+    box-shadow: 0 0 10px var(--gold);
+    animation: gem-pulse 2s ease-in-out infinite alternate;
+  }
+
+  @keyframes gem-pulse {
+    from { box-shadow: 0 0 8px var(--gold); }
+    to   { box-shadow: 0 0 20px var(--gold-light), 0 0 40px var(--gold); }
+  }
+
+  /* ── TABS ── */
+  .tabs {
+    display: flex;
+    gap: .5rem;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-bottom: 2rem;
+  }
+
+  .tab-btn {
+    font-family: 'Cinzel', serif;
+    font-size: .75rem;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    padding: .6rem 1.4rem;
+    background: transparent;
+    border: 1px solid rgba(201,162,39,.3);
+    color: rgba(244,228,193,.6);
+    cursor: pointer;
+    border-radius: 2px;
+    transition: all .3s;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .tab-btn::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: linear-gradient(135deg, rgba(201,162,39,.1), transparent);
+    opacity: 0;
+    transition: opacity .3s;
+  }
+
+  .tab-btn:hover, .tab-btn.active {
+    border-color: var(--gold);
+    color: var(--gold-light);
+  }
+
+  .tab-btn:hover::before, .tab-btn.active::before { opacity: 1; }
+  .tab-btn.active { box-shadow: 0 0 15px rgba(201,162,39,.25); }
+
+  /* ── PANELS ── */
+  .panel { display: none; animation: fade-in .4s ease; }
+  .panel.active { display: block; }
+
+  @keyframes fade-in {
+    from { opacity: 0; transform: translateY(10px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ── CARD ── */
+  .card {
+    background: linear-gradient(145deg, rgba(44,24,16,.85), rgba(26,13,5,.9));
+    border: 1px solid rgba(201,162,39,.2);
+    border-radius: 4px;
+    padding: 1.8rem 2rem;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='4' height='4'%3E%3Crect width='1' height='1' fill='rgba(201,162,39,.03)'/%3E%3C/svg%3E");
+    pointer-events: none;
+  }
+
+  .card-corner {
+    position: absolute;
+    width: 20px; height: 20px;
+    border-color: var(--gold);
+    border-style: solid;
+    opacity: .5;
+  }
+
+  .card-corner.tl { top: 8px; left: 8px; border-width: 2px 0 0 2px; }
+  .card-corner.tr { top: 8px; right: 8px; border-width: 2px 2px 0 0; }
+  .card-corner.bl { bottom: 8px; left: 8px; border-width: 0 0 2px 2px; }
+  .card-corner.br { bottom: 8px; right: 8px; border-width: 0 2px 2px 0; }
+
+  .card h2 {
+    font-family: 'Cinzel', serif;
+    font-size: 1.2rem;
+    color: var(--gold);
+    letter-spacing: .1em;
+    margin-bottom: 1.2rem;
+    display: flex; align-items: center; gap: .6rem;
+  }
+
+  /* ── CHARACTER CREATOR ── */
+  .char-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 1.5rem;
+  }
+
+  .field-group { display: flex; flex-direction: column; gap: .4rem; }
+
+  .field-group label {
+    font-family: 'Cinzel', serif;
+    font-size: .7rem;
+    letter-spacing: .15em;
+    color: var(--gold);
+    text-transform: uppercase;
+    opacity: .8;
+  }
+
+  .field-group input, .field-group select {
+    background: rgba(0,0,0,.4);
+    border: 1px solid rgba(201,162,39,.25);
+    border-radius: 2px;
+    color: var(--parchment);
+    font-family: 'IM Fell English', Georgia, serif;
+    font-size: .95rem;
+    padding: .55rem .9rem;
+    outline: none;
+    transition: border-color .3s, box-shadow .3s;
+    width: 100%;
+  }
+
+  .field-group input:focus, .field-group select:focus {
+    border-color: var(--gold);
+    box-shadow: 0 0 12px rgba(201,162,39,.2);
+  }
+
+  .field-group select option { background: #1a0d05; }
+
+  /* ── STATS ── */
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+    margin-top: 1.2rem;
+  }
+
+  .stat-box {
+    background: rgba(0,0,0,.5);
+    border: 1px solid rgba(201,162,39,.2);
+    border-radius: 3px;
+    text-align: center;
+    padding: .9rem .5rem;
+    cursor: pointer;
+    transition: all .3s;
+    user-select: none;
+    position: relative;
+  }
+
+  .stat-box:hover {
+    border-color: var(--gold);
+    background: rgba(201,162,39,.08);
+  }
+
+  .stat-name {
+    font-family: 'Cinzel', serif;
+    font-size: .6rem;
+    letter-spacing: .18em;
+    color: var(--gold);
+    text-transform: uppercase;
+    margin-bottom: .3rem;
+  }
+
+  .stat-value {
+    font-family: 'Cinzel Decorative', serif;
+    font-size: 2rem;
+    color: var(--parchment);
+    line-height: 1;
+  }
+
+  .stat-mod {
+    font-family: 'Cinzel', serif;
+    font-size: .75rem;
+    color: var(--ember);
+    margin-top: .15rem;
+  }
+
+  .roll-btn {
+    display: block;
+    width: 100%;
+    margin-top: 1.5rem;
+    font-family: 'Cinzel', serif;
+    font-size: .85rem;
+    letter-spacing: .15em;
+    text-transform: uppercase;
+    padding: .8rem;
+    background: linear-gradient(135deg, rgba(139,0,0,.6), rgba(80,0,0,.8));
+    border: 1px solid rgba(139,0,0,.6);
+    color: var(--parchment);
+    border-radius: 3px;
+    cursor: pointer;
+    transition: all .3s;
+  }
+
+  .roll-btn:hover {
+    background: linear-gradient(135deg, rgba(139,0,0,.9), rgba(100,0,0,.9));
+    box-shadow: 0 0 20px rgba(139,0,0,.5);
+    color: var(--gold-light);
+  }
+
+  /* ── DICE ROLLER ── */
+  .dice-area {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1.5rem;
+  }
+
+  .dice-types {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .8rem;
+    justify-content: center;
+  }
+
+  .die-btn {
+    font-family: 'Cinzel Decorative', serif;
+    font-size: .9rem;
+    width: 72px; height: 72px;
+    background: rgba(0,0,0,.5);
+    border: 2px solid rgba(201,162,39,.3);
+    color: var(--gold);
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all .25s;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    gap: 2px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .die-btn .die-icon { font-size: 1.6rem; line-height: 1; }
+  .die-btn .die-label { font-size: .55rem; letter-spacing: .1em; opacity: .7; }
+
+  .die-btn:hover {
+    border-color: var(--gold-light);
+    color: var(--gold-light);
+    background: rgba(201,162,39,.12);
+    transform: translateY(-3px) scale(1.05);
+    box-shadow: 0 8px 20px rgba(201,162,39,.2);
+  }
+
+  .die-btn:active { transform: translateY(0) scale(.97); }
+
+  .roll-result {
+    text-align: center;
+    min-height: 120px;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    gap: .5rem;
+  }
+
+  .roll-number {
+    font-family: 'Cinzel Decorative', serif;
+    font-size: 5rem;
+    line-height: 1;
+    background: linear-gradient(160deg, var(--gold-light), var(--ember));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    filter: drop-shadow(0 0 20px rgba(255,107,26,.4));
+    transition: all .3s;
+  }
+
+  .roll-number.rolling { animation: dice-roll .5s ease; }
+
+  @keyframes dice-roll {
+    0%   { transform: rotate(-10deg) scale(.8); opacity: 0; }
+    50%  { transform: rotate(5deg) scale(1.2); }
+    100% { transform: rotate(0deg) scale(1); opacity: 1; }
+  }
+
+  .roll-desc {
+    font-family: 'Cinzel', serif;
+    font-size: .8rem;
+    letter-spacing: .15em;
+    color: var(--parchment-dark);
+    opacity: .7;
+  }
+
+  .roll-history {
+    width: 100%;
+    max-width: 500px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: .4rem;
+    justify-content: center;
+    min-height: 30px;
+  }
+
+  .roll-chip {
+    font-family: 'Cinzel', serif;
+    font-size: .65rem;
+    padding: .2rem .6rem;
+    background: rgba(201,162,39,.1);
+    border: 1px solid rgba(201,162,39,.2);
+    border-radius: 20px;
+    color: var(--gold);
+    letter-spacing: .08em;
+  }
+
+  /* ── BESTIARY ── */
+  .monster-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1.2rem;
+  }
+
+  .monster-card {
+    background: linear-gradient(145deg, rgba(44,24,16,.7), rgba(20,10,5,.9));
+    border: 1px solid rgba(201,162,39,.15);
+    border-radius: 4px;
+    padding: 1.4rem;
+    cursor: pointer;
+    transition: all .3s;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .monster-card::after {
+    content: '';
+    position: absolute; inset: 0;
+    background: linear-gradient(135deg, rgba(201,162,39,.06), transparent);
+    opacity: 0;
+    transition: opacity .3s;
+  }
+
+  .monster-card:hover {
+    border-color: rgba(201,162,39,.5);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0,0,0,.5);
+  }
+
+  .monster-card:hover::after { opacity: 1; }
+
+  .monster-emoji { font-size: 2.8rem; margin-bottom: .6rem; display: block; }
+
+  .monster-name {
+    font-family: 'Cinzel', serif;
+    font-size: 1rem;
+    color: var(--gold);
+    letter-spacing: .08em;
+    margin-bottom: .3rem;
+  }
+
+  .monster-type {
+    font-size: .8rem;
+    color: var(--parchment-dark);
+    opacity: .65;
+    font-style: italic;
+    margin-bottom: .8rem;
+  }
+
+  .monster-stats {
+    display: flex;
+    gap: 1rem;
+    margin-top: .6rem;
+  }
+
+  .m-stat {
+    display: flex; flex-direction: column; align-items: center;
+    font-family: 'Cinzel', serif;
+    font-size: .62rem;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    color: var(--parchment-dark);
+    opacity: .7;
+  }
+
+  .m-stat span:first-child { font-size: 1.1rem; color: var(--ember); font-weight: bold; opacity: 1; }
+
+  .cr-badge {
+    display: inline-block;
+    padding: .15rem .5rem;
+    background: rgba(139,0,0,.4);
+    border: 1px solid rgba(139,0,0,.6);
+    border-radius: 2px;
+    font-family: 'Cinzel', serif;
+    font-size: .6rem;
+    letter-spacing: .12em;
+    color: #ff9999;
+    text-transform: uppercase;
+    margin-bottom: .5rem;
+  }
+
+  /* ── ADVENTURE LOG ── */
+  .log-area {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .log-entry {
+    display: flex; gap: 1rem; align-items: flex-start;
+    padding: 1rem 1.2rem;
+    background: rgba(0,0,0,.3);
+    border-left: 3px solid var(--gold);
+    border-radius: 0 3px 3px 0;
+    animation: slide-in .4s ease;
+  }
+
+  @keyframes slide-in {
+    from { opacity: 0; transform: translateX(-20px); }
+    to   { opacity: 1; transform: translateX(0); }
+  }
+
+  .log-icon { font-size: 1.4rem; flex-shrink: 0; margin-top: .1rem; }
+
+  .log-text { flex: 1; }
+  .log-title {
+    font-family: 'Cinzel', serif;
+    font-size: .85rem;
+    color: var(--gold);
+    letter-spacing: .08em;
+    margin-bottom: .3rem;
+  }
+
+  .log-body { font-size: .9rem; color: var(--parchment-dark); opacity: .85; line-height: 1.6; }
+  .log-time { font-size: .7rem; color: var(--parchment-dark); opacity: .45; margin-top: .4rem; font-style: italic; }
+
+  .log-controls {
+    display: flex; gap: .6rem; flex-wrap: wrap; margin-bottom: 1rem;
+  }
+
+  .log-action-btn {
+    font-family: 'Cinzel', serif;
+    font-size: .7rem;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    padding: .5rem 1rem;
+    background: rgba(0,0,0,.4);
+    border: 1px solid rgba(201,162,39,.25);
+    color: var(--parchment-dark);
+    border-radius: 2px;
+    cursor: pointer;
+    transition: all .3s;
+  }
+
+  .log-action-btn:hover {
+    border-color: var(--gold);
+    color: var(--gold-light);
+    background: rgba(201,162,39,.08);
+  }
+
+  /* ── MODAL ── */
+  .modal-overlay {
+    display: none;
+    position: fixed; inset: 0; z-index: 100;
+    background: rgba(0,0,0,.85);
+    backdrop-filter: blur(4px);
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+  }
+
+  .modal-overlay.open { display: flex; animation: fade-in .25s ease; }
+
+  .modal {
+    background: linear-gradient(145deg, #1e0f08, #0d0805);
+    border: 1px solid rgba(201,162,39,.35);
+    border-radius: 6px;
+    padding: 2rem;
+    max-width: 480px;
+    width: 100%;
+    position: relative;
+  }
+
+  .modal h3 {
+    font-family: 'Cinzel', serif;
+    font-size: 1.3rem;
+    color: var(--gold);
+    letter-spacing: .1em;
+    margin-bottom: 1rem;
+  }
+
+  .modal p {
+    color: var(--parchment-dark);
+    line-height: 1.7;
+    font-size: .95rem;
+    opacity: .88;
+    margin-bottom: .8rem;
+  }
+
+  .modal-close {
+    position: absolute;
+    top: 1rem; right: 1.2rem;
+    background: none;
+    border: none;
+    color: var(--gold);
+    font-size: 1.4rem;
+    cursor: pointer;
+    opacity: .6;
+    transition: opacity .2s;
+  }
+
+  .modal-close:hover { opacity: 1; }
+
+  /* ── MOBILE ── */
+  @media (max-width: 600px) {
+    .stats-grid { grid-template-columns: repeat(3, 1fr); }
+    .char-grid  { grid-template-columns: 1fr; }
+    .die-btn    { width: 60px; height: 60px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="bg-layer"></div>
+<div class="particles" id="particles"></div>
+
+<div class="container">
+
+  <!-- HEADER -->
+  <header>
+    <p class="title-eyebrow">⚔ Bem-vindo à Taverna ⚔</p>
+    <h1>Dungeons<br>&amp; Dragons</h1>
+    <p class="subtitle">Forge your legend. Roll your fate.</p>
+    <div class="divider">
+      <div class="divider-line"></div>
+      <div class="divider-gem"></div>
+      <div class="divider-line"></div>
+    </div>
+  </header>
+
+  <!-- TABS -->
+  <nav class="tabs">
+    <button class="tab-btn active" data-tab="character">⚔ Personagem</button>
+    <button class="tab-btn" data-tab="dice">🎲 Dados</button>
+    <button class="tab-btn" data-tab="bestiary">👹 Bestiário</button>
+    <button class="tab-btn" data-tab="log">📜 Diário</button>
+  </nav>
+
+  <!-- ── CHARACTER CREATOR ── -->
+  <div class="panel active" id="panel-character">
+    <div class="card">
+      <div class="card-corner tl"></div><div class="card-corner tr"></div>
+      <div class="card-corner bl"></div><div class="card-corner br"></div>
+      <h2>⚔ Criador de Personagem</h2>
+      <div class="char-grid">
+        <div class="field-group">
+          <label>Nome do Herói</label>
+          <input type="text" id="char-name" placeholder="Ex: Elandyr Shadowmere" />
+        </div>
+        <div class="field-group">
+          <label>Raça</label>
+          <select id="char-race">
+            <option value="">— Escolher Raça —</option>
+            <option>Humano</option><option>Elfo</option><option>Anão</option>
+            <option>Halfling</option><option>Meio-Elfo</option><option>Meio-Orc</option>
+            <option>Gnomo</option><option>Tiefling</option><option>Draconato</option>
+          </select>
+        </div>
+        <div class="field-group">
+          <label>Classe</label>
+          <select id="char-class">
+            <option value="">— Escolher Classe —</option>
+            <option>Guerreiro</option><option>Mago</option><option>Ladino</option>
+            <option>Clérigo</option><option>Druida</option><option>Bardo</option>
+            <option>Paladino</option><option>Ranger</option><option>Bárbaro</option>
+            <option>Feiticeiro</option><option>Bruxo</option><option>Monge</option>
+          </select>
+        </div>
+        <div class="field-group">
+          <label>Antecedente</label>
+          <select id="char-bg">
+            <option value="">— Antecedente —</option>
+            <option>Nobre</option><option>Soldado</option><option>Sábio</option>
+            <option>Criminoso</option><option>Herói do Povo</option><option>Ermitão</option>
+            <option>Artista</option><option>Forasteiro</option><option>Marinheiro</option>
+          </select>
+        </div>
+        <div class="field-group">
+          <label>Nível</label>
+          <select id="char-level">
+            <option>1</option><option>2</option><option>3</option><option>4</option>
+            <option>5</option><option>6</option><option>7</option><option>8</option>
+            <option>9</option><option>10</option><option>11</option><option>12</option>
+            <option>15</option><option>20</option>
+          </select>
+        </div>
+        <div class="field-group">
+          <label>Alinhamento</label>
+          <select id="char-align">
+            <option value="">— Alinhamento —</option>
+            <option>Leal e Bom</option><option>Neutro e Bom</option><option>Caótico e Bom</option>
+            <option>Leal e Neutro</option><option>Verdadeiramente Neutro</option><option>Caótico e Neutro</option>
+            <option>Leal e Mau</option><option>Neutro e Mau</option><option>Caótico e Mau</option>
+          </select>
+        </div>
+      </div>
+
+      <h2 style="margin-top:2rem;">📊 Atributos — Clique para rolar 4d6</h2>
+      <div class="stats-grid">
+        <div class="stat-box" onclick="rollStat(this,'Força')">
+          <div class="stat-name">Força</div>
+          <div class="stat-value" id="stat-str">—</div>
+          <div class="stat-mod" id="mod-str"></div>
+        </div>
+        <div class="stat-box" onclick="rollStat(this,'Destreza')">
+          <div class="stat-name">Destreza</div>
+          <div class="stat-value" id="stat-dex">—</div>
+          <div class="stat-mod" id="mod-dex"></div>
+        </div>
+        <div class="stat-box" onclick="rollStat(this,'Constituição')">
+          <div class="stat-name">Constituição</div>
+          <div class="stat-value" id="stat-con">—</div>
+          <div class="stat-mod" id="mod-con"></div>
+        </div>
+        <div class="stat-box" onclick="rollStat(this,'Inteligência')">
+          <div class="stat-name">Inteligência</div>
+          <div class="stat-value" id="stat-int">—</div>
+          <div class="stat-mod" id="mod-int"></div>
+        </div>
+        <div class="stat-box" onclick="rollStat(this,'Sabedoria')">
+          <div class="stat-name">Sabedoria</div>
+          <div class="stat-value" id="stat-wis">—</div>
+          <div class="stat-mod" id="mod-wis"></div>
+        </div>
+        <div class="stat-box" onclick="rollStat(this,'Carisma')">
+          <div class="stat-name">Carisma</div>
+          <div class="stat-value" id="stat-cha">—</div>
+          <div class="stat-mod" id="mod-cha"></div>
+        </div>
+      </div>
+
+      <button class="roll-btn" onclick="rollAllStats()">🎲 Rolar Todos os Atributos</button>
+    </div>
+  </div>
+
+  <!-- ── DICE ROLLER ── -->
+  <div class="panel" id="panel-dice">
+    <div class="card">
+      <div class="card-corner tl"></div><div class="card-corner tr"></div>
+      <div class="card-corner bl"></div><div class="card-corner br"></div>
+      <h2>🎲 Mesa de Dados</h2>
+      <div class="dice-area">
+        <div class="dice-types">
+          <button class="die-btn" onclick="rollDie(4)">  <span class="die-icon">▲</span><span class="die-label">D4</span>  </button>
+          <button class="die-btn" onclick="rollDie(6)">  <span class="die-icon">⬡</span><span class="die-label">D6</span>  </button>
+          <button class="die-btn" onclick="rollDie(8)">  <span class="die-icon">◆</span><span class="die-label">D8</span>  </button>
+          <button class="die-btn" onclick="rollDie(10)"> <span class="die-icon">⬟</span><span class="die-label">D10</span> </button>
+          <button class="die-btn" onclick="rollDie(12)"> <span class="die-icon">⬠</span><span class="die-label">D12</span> </button>
+          <button class="die-btn" onclick="rollDie(20)"> <span class="die-icon">⬡</span><span class="die-label">D20</span> </button>
+          <button class="die-btn" onclick="rollDie(100)"><span class="die-icon">%</span><span class="die-label">D100</span></button>
+        </div>
+
+        <div class="roll-result">
+          <div class="roll-number" id="roll-number">—</div>
+          <div class="roll-desc" id="roll-desc">Escolha um dado acima</div>
+        </div>
+
+        <div class="roll-history" id="roll-history"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── BESTIARY ── -->
+  <div class="panel" id="panel-bestiary">
+    <div class="card">
+      <div class="card-corner tl"></div><div class="card-corner tr"></div>
+      <div class="card-corner bl"></div><div class="card-corner br"></div>
+      <h2>👹 Bestiário das Trevas</h2>
+      <div class="monster-grid" id="monster-grid"></div>
+    </div>
+  </div>
+
+  <!-- ── ADVENTURE LOG ── -->
+  <div class="panel" id="panel-log">
+    <div class="card">
+      <div class="card-corner tl"></div><div class="card-corner tr"></div>
+      <div class="card-corner bl"></div><div class="card-corner br"></div>
+      <h2>📜 Diário da Aventura</h2>
+      <div class="log-controls">
+        <button class="log-action-btn" onclick="addLogEntry('combat')">⚔ Combate</button>
+        <button class="log-action-btn" onclick="addLogEntry('discovery')">🔍 Descoberta</button>
+        <button class="log-action-btn" onclick="addLogEntry('loot')">💰 Tesouro</button>
+        <button class="log-action-btn" onclick="addLogEntry('npc')">🧙 Encontro</button>
+        <button class="log-action-btn" onclick="addLogEntry('trap')">⚠ Armadilha</button>
+        <button class="log-action-btn" onclick="clearLog()" style="border-color:rgba(139,0,0,.4);color:#ff9999;">🗑 Limpar</button>
+      </div>
+      <div class="log-area" id="log-area">
+        <div class="log-entry">
+          <span class="log-icon">📜</span>
+          <div class="log-text">
+            <div class="log-title">Início da Aventura</div>
+            <div class="log-body">O grupo se reúne na Taverna do Dragão Dourado. Uma missão aguarda os corajosos aventureiros que ousem adentrar as masmorras abaixo da cidade de Waterdeep...</div>
+            <div class="log-time">Capítulo I — A Chamada</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /container -->
+
+<!-- MODAL -->
+<div class="modal-overlay" id="modal-overlay" onclick="closeModal(event)">
+  <div class="modal">
+    <button class="modal-close" onclick="document.getElementById('modal-overlay').classList.remove('open')">✕</button>
+    <h3 id="modal-title">Monstro</h3>
+    <p id="modal-body"></p>
+    <p id="modal-extra"></p>
+  </div>
+</div>
+
+<script>
+/* ── PARTICLES ── */
+(function(){
+  const c = document.getElementById('particles');
+  for(let i=0;i<35;i++){
+    const s = document.createElement('div');
+    s.className = 'spark';
+    s.style.left = Math.random()*100 + '%';
+    s.style.animationDuration = (6+Math.random()*12)+'s';
+    s.style.animationDelay = (Math.random()*12)+'s';
+    s.style.setProperty('--dx', (Math.random()*120-60).toString());
+    s.style.width = s.style.height = (1+Math.random()*2.5)+'px';
+    c.appendChild(s);
+  }
+})();
+
+/* ── TABS ── */
+document.querySelectorAll('.tab-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('panel-' + btn.dataset.tab).classList.add('active');
+  });
+});
+
+/* ── STATS ── */
+const statIds = [
+  ['str','Força'],['dex','Destreza'],['con','Constituição'],
+  ['int','Inteligência'],['wis','Sabedoria'],['cha','Carisma']
+];
+
+function roll4d6drop1(){
+  let rolls = Array.from({length:4},()=>Math.ceil(Math.random()*6));
+  rolls.sort((a,b)=>a-b);
+  return rolls.slice(1).reduce((a,b)=>a+b,0);
+}
+
+function getMod(v){ return Math.floor((v-10)/2); }
+
+function rollStat(box, name){
+  const val = roll4d6drop1();
+  const id = box.querySelector('.stat-value').id.replace('stat-','');
+  const mod = getMod(val);
+  const vEl = document.getElementById('stat-'+id);
+  const mEl = document.getElementById('mod-'+id);
+  vEl.textContent = val;
+  mEl.textContent = (mod>=0?'+':'')+mod;
+  box.style.borderColor = val>=15?'#c9a227':val<=8?'#8b0000':'rgba(201,162,39,.35)';
+}
+
+function rollAllStats(){
+  statIds.forEach(([id])=>{
+    const box = document.getElementById('stat-'+id).closest('.stat-box');
+    rollStat(box, id);
+  });
+}
+
+/* ── DICE ── */
+let rollHistory = [];
+
+function rollDie(sides){
+  const result = Math.ceil(Math.random()*sides);
+  const numEl = document.getElementById('roll-number');
+  numEl.classList.remove('rolling');
+  void numEl.offsetWidth;
+  numEl.classList.add('rolling');
+  numEl.textContent = result;
+
+  let flavor = '';
+  if(sides===20){
+    if(result===20) flavor = '🌟 CRÍTICO NATURAL!';
+    else if(result===1) flavor = '💀 FALHA CRÍTICA!';
+    else if(result>=15) flavor = '⚔ Sucesso!';
+    else if(result<=5) flavor = '😰 Fracasso';
+    else flavor = '🎲 Resultado razoável';
+  } else {
+    flavor = `🎲 Rolagem de D${sides}`;
+  }
+
+  document.getElementById('roll-desc').textContent = flavor;
+  rollHistory.unshift({sides, result});
+  if(rollHistory.length > 10) rollHistory.pop();
+
+  const hist = document.getElementById('roll-history');
+  hist.innerHTML = rollHistory.map(r =>
+    `<span class="roll-chip">D${r.sides}: <strong>${r.result}</strong></span>`
+  ).join('');
+}
+
+/* ── BESTIARY ── */
+const monsters = [
+  { name:'Goblin',      emoji:'👺', type:'Humanoide Pequeno',    cr:'1/4', hp:7,   ac:15, atk:'+4', desc:'Criaturas ardilosas que habitam masmorras escuras. Covardes em grandes números, mas perigosos em emboscadas.', spec:'Fuga Ágil: Pode se esquivar como ação bônus.' },
+  { name:'Esqueleto',   emoji:'💀', type:'Morto-vivo Médio',     cr:'1/4', hp:13,  ac:13, atk:'+4', desc:'Soldados mortos reanimados por magia negra. Imunes à fadiga e ao veneno.', spec:'Vulnerabilidade a dano contundente.' },
+  { name:'Goblin Rei',  emoji:'👑', type:'Humanoide Pequeno',    cr:'1',   hp:21,  ac:17, atk:'+4', desc:'O Goblin Rei comanda seus lacaios com mão de ferro. Usa armadura elaborada saqueada de aventureiros mortos.', spec:'Liderança: Aliados próximos têm vantagem em ataques.' },
+  { name:'Troll',       emoji:'🧌', type:'Gigante Grande',       cr:'5',   hp:84,  ac:15, atk:'+7', desc:'Criaturas terríveis com regeneração sobrenatural. Apenas fogo e ácido impedem sua cura.', spec:'Regeneração: Recupera 10 HP por turno, salvo dano de fogo/ácido.' },
+  { name:'Vampiro',     emoji:'🧛', type:'Morto-vivo Médio',     cr:'13',  hp:144, ac:16, atk:'+9', desc:'Um nobre das trevas que atravessa os séculos. Seduz suas vítimas antes de drenar a força vital delas.', spec:'Drenagem de Vida: Reduz o máximo de HP da vítima.' },
+  { name:'Dragão Vermelho',emoji:'🐉',type:'Dragão Enorme',      cr:'17',  hp:256, ac:19, atk:'+14',desc:'O mais poderoso e orgulhoso dos dragões cromáticos. Seu sopro de fogo destrói reinos inteiros.', spec:'Sopro de Fogo: 26d6 de dano em cone de 18m (CD 21).' },
+  { name:'Beholder',    emoji:'👁', type:'Aberração Grande',     cr:'13',  hp:180, ac:18, atk:'+8', desc:'Um olho gigante flutuante com raios mágicos em seus tentáculos oculares. Quer destruir toda magia fora de seu controle.', spec:'Raio Antimagia: Suspende todos os efeitos mágicos.' },
+  { name:'Lich',        emoji:'🧟', type:'Morto-vivo Médio',     cr:'21',  hp:135, ac:17, atk:'+12',desc:'Um mago que trocou a mortalidade pelo poder eterno. Seu filactério mantém sua alma presa neste mundo.', spec:'Resistência Lendária: 3x por dia ignora falhas em testes.' },
+  { name:'Medusa',      emoji:'🐍', type:'Monstro Médio',        cr:'6',   hp:127, ac:15, atk:'+5', desc:'Uma criatura de beleza mortífera cujo olhar transforma em pedra. Sua caverna está repleta de estátuas de aventureiros.', spec:'Olhar Petrificante: CD 14 Constituição ou ficar petrificado.' },
+];
+
+function buildBestiary(){
+  const grid = document.getElementById('monster-grid');
+  grid.innerHTML = monsters.map((m,i) => `
+    <div class="monster-card" onclick="showMonster(${i})">
+      <span class="monster-emoji">${m.emoji}</span>
+      <div class="cr-badge">CR ${m.cr}</div>
+      <div class="monster-name">${m.name}</div>
+      <div class="monster-type">${m.type}</div>
+      <div class="monster-stats">
+        <div class="m-stat"><span>${m.hp}</span>HP</div>
+        <div class="m-stat"><span>${m.ac}</span>CA</div>
+        <div class="m-stat"><span>${m.atk}</span>ATK</div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function showMonster(i){
+  const m = monsters[i];
+  document.getElementById('modal-title').textContent = m.emoji+' '+m.name;
+  document.getElementById('modal-body').textContent = m.desc;
+  document.getElementById('modal-extra').innerHTML =
+    `<strong style="color:var(--gold);font-family:'Cinzel',serif;font-size:.8rem;letter-spacing:.1em;">HABILIDADE ESPECIAL:</strong><br>${m.spec}`;
+  document.getElementById('modal-overlay').classList.add('open');
+}
+
+function closeModal(e){
+  if(e.target.id==='modal-overlay') document.getElementById('modal-overlay').classList.remove('open');
+}
+
+buildBestiary();
+
+/* ── ADVENTURE LOG ── */
+const logEvents = {
+  combat:[
+    {title:'Emboscada!',icon:'⚔',entries:[
+      'Um grupo de orcs bloqueia o caminho. Suas armas enferrujadas ainda causam dano mortal.',
+      'Três goblinoides emergem das sombras com lanças apontadas para o grupo.',
+      'Um cavaleiro espectral barra a entrada da cripta, exigindo que os aventureiros se identifiquem.',
+    ]},
+    {title:'Vitória no Combate',icon:'🏆',entries:[
+      'Após uma luta brutal, os aventureiros vencem seus oponentes. O silêncio retorna à câmara.',
+      'O monstro cai derrotado. Seus ossos se dissolvem em pó negro.',
+    ]},
+  ],
+  discovery:[
+    {title:'Câmara Secreta',icon:'🔍',entries:[
+      'Atrás de uma prateleira, uma passagem oculta revela uma câmara cheia de instrumentos arcanos antigos.',
+      'O grupo descobre uma biblioteca esquecida. Os tomos escritos em abissal guardam segredos perigosos.',
+      'Um altar dedicado a uma divindade esquecida pulsa com energia fraca mas persistente.',
+    ]},
+  ],
+  loot:[
+    {title:'Tesouro Encontrado',icon:'💰',entries:[
+      'Uma arca reforçada com ferro contém 500 peças de ouro, uma poção de cura e um pergaminho de Bola de Fogo.',
+      'Escondido sob uma pedra solta: um anel com a inscrição "Para os corajosos, o poder".',
+      'Os restos de um aventureiro anterior ainda seguram uma espada longa +2 de prata.',
+    ]},
+  ],
+  npc:[
+    {title:'Encontro Inesperado',icon:'🧙',entries:[
+      'Um anão aprisionado numa cela diz que foi capturado por necromantes. Ele implora por ajuda.',
+      'Uma bruxa oferece informações sobre o calabouço em troca de um item valioso.',
+      'O fantasma de um paladino explica que não pode descansar até que seu escudo roubado seja recuperado.',
+    ]},
+  ],
+  trap:[
+    {title:'Armadilha Detectada',icon:'⚠',entries:[
+      'O ladino nota fios de tripwire quase invisíveis na entrada. Uma lâmina pendurada cairia sobre qualquer um que passasse.',
+      'O chão ressoa oco. Azulejos com símbolos diferentes escondem dardos envenenados.',
+      'Uma inscrição na parede diz: "Apenas o humilde pode passar". O orgulhoso ativa a armadilha de gás.',
+    ]},
+  ],
+};
+
+function addLogEntry(type){
+  const typeData = logEvents[type];
+  const event = typeData[Math.floor(Math.random()*typeData.length)];
+  const text = event.entries[Math.floor(Math.random()*event.entries.length)];
+  const now = new Date();
+  const time = now.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
+
+  const entry = document.createElement('div');
+  entry.className = 'log-entry';
+  entry.innerHTML = `
+    <span class="log-icon">${event.icon}</span>
+    <div class="log-text">
+      <div class="log-title">${event.title}</div>
+      <div class="log-body">${text}</div>
+      <div class="log-time">⏱ ${time}</div>
+    </div>
+  `;
+  document.getElementById('log-area').prepend(entry);
+}
+
+function clearLog(){
+  document.getElementById('log-area').innerHTML = '<div class="log-entry"><span class="log-icon">📜</span><div class="log-text"><div class="log-title">Página em Branco</div><div class="log-body">Uma nova aventura começa agora. O que os fados reservam?</div></div></div>';
+}
+</script>
+</body>
+</html>
